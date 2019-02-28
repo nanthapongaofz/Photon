@@ -33,13 +33,12 @@ void callback(char* topic, uint8_t* payload, unsigned int length) {
 void setup() {
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   oled.clearDisplay();
-
-  //client.connect("mqtt_fin");
-  client.connect("mqtt_bfish");
+  client.connect("mqtt_fin");
+  //client.connect("mqtt_brutus");
   if (client.isConnected()) {
-      //client.publish("homeassistant/fin","Online");
-      client.publish("homeassistant/bfish","Online");
-    }
+    client.publish("homeassistant/fin","online");
+    //client.publish("homeassistant/brutus","online");
+  }
 }
 
 void loop() {
@@ -66,11 +65,13 @@ void getTemp(){
     Serial.println("Invalid reading");
   }
   Serial.println(celsius);
-  //client.publish("homeassistant/fin/ds18b20/celsius", String(celsius,2));
-  client.publish("homeassistant/bfish/ds18b20/celsius", String(celsius,2));
   Serial.println(fahrenheit);
-  //client.publish("homeassistant/fin/ds18b20/fahrenheit", String(fahrenheit,2));
-  client.publish("homeassistant/bfish/ds18b20/fahrenheit", String(fahrenheit,2));
+  client.publish("homeassistant/fin/ds18b20/celsius", String(celsius,2));
+  client.publish("homeassistant/fin/ds18b20/fahrenheit", String(fahrenheit,2));
+  client.publish("homeassistant/fin","online");
+  //client.publish("homeassistant/brutus/ds18b20/celsius", String(celsius,2));
+  //client.publish("homeassistant/brutus/ds18b20/fahrenheit", String(fahrenheit,2));
+  //client.publish("homeassistant/brutus","online");
   delay(2000);
   msLastSample = millis();
 }
