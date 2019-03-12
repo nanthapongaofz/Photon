@@ -26,8 +26,27 @@ byte PPServer[] = {128, 199, 157, 0 };
 
 MQTT client(PPServer, 1883, callback);
 
-void callback(char* topic, uint8_t* payload, unsigned int length) {
 
+
+void send_data(){
+  client.publish("homeassistant/fin/ds18b20/celsius", String(celsius,2));
+  client.publish("homeassistant/fin/ds18b20/fahrenheit", String(fahrenheit,2));
+  client.publish("homeassistant/fin","online");
+  //client.publish("homeassistant/brutus/ds18b20/celsius", String(celsius,2));
+  //client.publish("homeassistant/brutus/ds18b20/fahrenheit", String(fahrenheit,2));
+  //client.publish("homeassistant/brutus","online");
+}
+
+void callback(char* topic, uint8_t* payload, unsigned int length) {
+  char p[length + 1];
+  memcpy(p, payload, length);
+  p[length] = NULL;
+  String message(p);
+  payload[length] = '\0';
+  String strPayload = String((char*)payload);
+  if (strPayload == "online") {
+    send_data();
+  }
 }
 
 void setup() {
@@ -37,16 +56,23 @@ void setup() {
   //client.connect("mqtt_brutus");
   if (client.isConnected()) {
     client.publish("homeassistant/fin","online");
+    client.subscribe("homeassistant/fin/status/set");
     //client.publish("homeassistant/brutus","online");
+    //client.subscribe("homeassistant/brutus/status/set");
   }
 }
 
 void loop() {
-  if (client.isConnected())
-  client.loop();
+  if (client.isConnected()){
+    client.loop();
+  }
   getTemp();
   displayOled();
   oled.display();
+  if(millis() - lastPublish > 5 * 60 * 1000){
+    lastPublish = millis();
+    send_data();
+  }
 }
 
 void getTemp(){
@@ -64,16 +90,6 @@ void getTemp(){
     celsius = fahrenheit = NAN;
     Serial.println("Invalid reading");
   }
-  Serial.println(celsius);
-  Serial.println(fahrenheit);
-  client.publish("homeassistant/fin/ds18b20/celsius", String(celsius,2));
-  client.publish("homeassistant/fin/ds18b20/fahrenheit", String(fahrenheit,2));
-  client.publish("homeassistant/fin","online");
-  //client.publish("homeassistant/brutus/ds18b20/celsius", String(celsius,2));
-  //client.publish("homeassistant/brutus/ds18b20/fahrenheit", String(fahrenheit,2));
-  //client.publish("homeassistant/brutus","online");
-  delay(2000);
-  msLastSample = millis();
 }
 
 void displayOled(){
